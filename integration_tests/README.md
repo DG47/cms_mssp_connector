@@ -3,7 +3,7 @@
 `integration_tests` is the dbt project used for local development and CI of
 `cms_mssp_connector`. It installs the connector as a local package
 (`packages.yml` → `local: ../`), which brings in `cms_alr_connector` v1.1.0,
-`medicare_cclf_connector` v1.0.0, Tuva Core v1.0.0 (dbt package name
+`medicare_cclf_connector` v1.0.1, Tuva Core v1.0.0 (dbt package name
 `the_tuva_project`), the semantic-layer stack and CMS chronic conditions. It
 loads synthetic fixture seeds where every `source()` expects raw tables and builds the whole stack
 against them on local DuckDB, with no warehouse and no credentials. All CI

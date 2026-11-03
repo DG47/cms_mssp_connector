@@ -372,7 +372,7 @@ checks a release against it.
 
 - `dbt-labs/dbt_utils`
 - `tuva-health/cms_alr_connector` `v1.1.0`, which brings
-  `tuva-health/medicare_cclf_connector` `v1.0.0` and Tuva Core `v1.0.0`
+  `tuva-health/medicare_cclf_connector` `v1.0.1` and Tuva Core `v1.0.0`
   (`tuva-health/tuva-core`, dbt package name `the_tuva_project`). v1.1.0
   publishes the monthly enrollment flag on `enrollment.enroll_flag`, which
   `int_member_month_risk` types member-months from.

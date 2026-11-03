@@ -73,6 +73,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   again from it. They add assigned disabled and aged/dual beneficiaries
   (TUVA-134), so the risk-score cap is populated and binds in the harness
   build.
+- Through `cms_alr_connector` `v1.1.0`, `medicare_cclf_connector` moves to
+  `v1.0.1` (TUVA-138), which fixes four bugs that change Tuva outputs:
+  - `dual_status_code` comes from CCLF8, so full and partial duals are no
+    longer scored as non-dual by Tuva's CMS-HCC (their scores rise);
+  - Part A revenue center lines join on the header's `PRVDR_OSCAR_NUM`, so
+    claims whose billing CCN differs keep their lines;
+  - institutional procedure codes are typed ICD-10-PCS / ICD-9-PCS;
+  - physician lines with no denial code are kept.
+
+  CMS's own figures that this connector reads from the assignment list and
+  the MSSP workbooks are unaffected.
 - **Breaking:** the package stack moves to Tuva 1.0 (TUVA-124).
   `cms_alr_connector` is pinned to `v1.0.0` (from commit `24302c5`), which
   brings `medicare_cclf_connector` `v1.0.0` and Tuva Core `v1.0.0`

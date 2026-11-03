@@ -482,7 +482,7 @@ unit_tests:
   # -------------------------------------------------------------------------
   # The month rule against ALR's governing file (TUVA-127, decision D1).
   # README, "Which member-months count as assigned", explains both rules and
-  # when they disagree. Every assignment-list row below is one ALR v1.0.0's
+  # when they disagree. Every assignment-list row below is one ALR's
   # `enrollment` would carry: a row of the file that governs that month.
   # -------------------------------------------------------------------------
 
