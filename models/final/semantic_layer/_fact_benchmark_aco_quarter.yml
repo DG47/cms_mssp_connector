@@ -591,11 +591,10 @@ unit_tests:
     model: fact_benchmark_aco_quarter
     description: >
       Pins the cap where every type, disabled and aged/dual included, has an
-      assigned, scored member-month. The integration_tests fixtures cannot
-      reach this: the cms_alr_connector v1.0.0 ALR seeds have no disabled or
-      aged/dual beneficiary scored in 2025, so the harness leaves the ratio,
-      the factor and the capped rates NULL by design (TUVA-126; TUVA-134
-      adds such beneficiaries). BY3 [C] differs by type (1.25, 0.75, 1.125,
+      assigned, scored member-month, with exact expected values. The
+      integration_tests fixtures (cms_alr_connector v1.1.0, TUVA-134) also
+      reach this case and the cap binds there, but only this test pins the
+      arithmetic. BY3 [C] differs by type (1.25, 0.75, 1.125,
       1.25 in 2025 and 2024; 1.0 in 2023) so the ratio's denominator is visible, and so do the national
       means (not 1.0).
       2025 Q3  Scores 1.875, 0.9375, 1.40625, 1.5625 give ratios 1.5 (ESRD),
