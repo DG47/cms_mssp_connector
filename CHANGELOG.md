@@ -72,7 +72,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `enrollment.enroll_flag`, and the harness's ALR and CCLF seeds are copied
   again from it. They add assigned disabled and aged/dual beneficiaries
   (TUVA-134), so the risk-score cap is populated and binds in the harness
-  build.
+  build. The workbook and BEUR fixtures are regenerated from them with
+  `cclf-synth generate-mssp`.
 - Through `cms_alr_connector` `v1.1.0`, `medicare_cclf_connector` moves to
   `v1.0.1` (TUVA-138), which fixes four bugs that change Tuva outputs:
   - `dual_status_code` comes from CCLF8, so full and partial duals are no
