@@ -362,9 +362,15 @@ eligibility_ranked as (
 
 ),
 
--- Dual status arrives as a CMS code (00 and NA non-dual, 01-08 dual) from the
--- CCLF demographics, or as the assignment list's person-year dual fraction
--- where the CCLF connector had one; a fraction of at least one half is dual.
+-- Dual status arrives as a CMS dual status code from the CCLF demographics,
+-- or as the assignment list's person-year dual fraction where the CCLF
+-- connector had one; a fraction of at least one half is dual. The Shared
+-- Savings Program counts four codes as dual eligible: 01 QMB, 02 QMB-plus,
+-- 04 SLMB-plus and 08 other full-benefit dual (Shared Savings and Losses,
+-- Assignment and Quality Performance Standard Methodology, "Dual eligible
+-- for Medicare and Medicaid"). The partial-benefit codes 03 SLMB-only,
+-- 05 QDWI and 06 QI, and 09 other dual without Medicaid, are not dual to
+-- the program, so they split aged as aged/non-dual, as 00, 99 and NA do.
 eligibility_dual as (
 
     select
@@ -374,7 +380,7 @@ eligibility_dual as (
         MEDICARE_STATUS_CODE,
         ORIGINAL_REASON_ENTITLEMENT_CODE,
         case
-            when DUAL_STATUS_CODE in ('01', '02', '03', '04', '05', '06', '07', '08') then true
+            when DUAL_STATUS_CODE in ('01', '02', '04', '08')                           then true
             when {{ cast_numeric_or_null('DUAL_STATUS_CODE') }} >= 0.5
              and {{ cast_numeric_or_null('DUAL_STATUS_CODE') }} <= 1                  then true
             else false

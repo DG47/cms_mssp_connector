@@ -142,8 +142,14 @@ models:
              `medicare_status_code` first (11, 21, 31 ESRD; 20 disabled; 10
              aged), `original_reason_entitlement_code` only when the status is
              missing (2, 3 ESRD; 1 disabled), then dual status to split aged —
-             a code of 01-08, or a person-year dual fraction of at least 0.5,
-             is dual. A covering span with no usable code is aged/non-dual, the
+             one of the four dual status codes the Shared Savings Program
+             counts as dual eligible (01 QMB, 02 QMB-plus, 04 SLMB-plus, 08
+             other full-benefit dual), or a person-year dual fraction of at
+             least 0.5, is dual. The program's methodology specification
+             ("Dual eligible for Medicare and Medicaid") types every other
+             code — 03 SLMB-only, 05 QDWI, 06 QI, 09 other dual without
+             Medicaid, 99 unknown — as aged/non-dual, and so does this step.
+             A covering span with no usable code is aged/non-dual, the
              residual category.
 
           NULL when none of the three resolves. Never defaulted.
@@ -425,6 +431,87 @@ unit_tests:
         - {PERSON_ID: 'E1', YEAR_MONTH: '202307', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'esrd',          ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
         - {PERSON_ID: 'N1', YEAR_MONTH: '202308', IS_ASSIGNED: true,  ENROLLMENT_TYPE: null,            ENROLLMENT_TYPE_SOURCE: null}
         - {PERSON_ID: 'N2', YEAR_MONTH: '202309', IS_ASSIGNED: false, ENROLLMENT_TYPE: null,            ENROLLMENT_TYPE_SOURCE: null}
+
+  - name: test_eligibility_dual_split_uses_the_programs_dual_status_codes
+    model: int_member_month_risk
+    description: >
+      The eligibility step's aged/dual split, against the four dual status
+      codes the Shared Savings Program counts as dual eligible: 01, 02, 04
+      and 08 (Shared Savings and Losses, Assignment and Quality Performance
+      Standard Methodology, "Dual eligible for Medicare and Medicaid"). No
+      member below has an assignment-list row, so every month types from
+      the eligibility codes, and every span is aged (status 10) so that only
+      the dual status differs.
+
+      D01, D02, D04, D08  QMB, QMB-plus, SLMB-plus and other full-benefit
+                          dual: `aged_dual`.
+      D03, D05, D06       SLMB-only, QDWI and QI, the partial-benefit codes
+                          the program does not count as dual: `aged_non_dual`.
+      D09, D99            Other dual without Medicaid, and unknown:
+                          `aged_non_dual`.
+      D00, DNA, DNULL     Not enrolled, non-Medicaid and no code at all:
+                          `aged_non_dual`.
+      DFR                 A person-year dual fraction of exactly one half,
+                          the lowest that counts: `aged_dual`.
+
+    given:
+
+      - input: ref('the_tuva_project', 'core__member_month')
+        rows:
+          - {person_id: 'D01', member_id: 'D01', year_month: '202401', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D02', member_id: 'D02', year_month: '202402', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D03', member_id: 'D03', year_month: '202403', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D04', member_id: 'D04', year_month: '202404', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D05', member_id: 'D05', year_month: '202405', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D06', member_id: 'D06', year_month: '202406', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D08', member_id: 'D08', year_month: '202407', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D09', member_id: 'D09', year_month: '202408', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D99', member_id: 'D99', year_month: '202409', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'D00', member_id: 'D00', year_month: '202410', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'DNA', member_id: 'DNA', year_month: '202411', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'DNULL', member_id: 'DNULL', year_month: '202412', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+          - {person_id: 'DFR', member_id: 'DFR', year_month: '202401', payer: 'medicare', plan: 'medicare', data_source: 'medicare'}
+
+      - input: ref('cms_aalr_connector', 'enrollment')
+        rows: []
+
+      - input: ref('medicare_cclf_connector', 'int_beneficiary_xref_deduped')
+        rows: []
+
+      - input: ref('stg_excluded_beneficiary_mbi_xref')
+        rows: []
+
+      - input: ref('the_tuva_project', 'core__eligibility')
+        rows:
+          - {person_id: 'D01', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '01'}
+          - {person_id: 'D02', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '02'}
+          - {person_id: 'D03', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '03'}
+          - {person_id: 'D04', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '04'}
+          - {person_id: 'D05', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '05'}
+          - {person_id: 'D06', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '06'}
+          - {person_id: 'D08', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '08'}
+          - {person_id: 'D09', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '09'}
+          - {person_id: 'D99', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '99'}
+          - {person_id: 'D00', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '00'}
+          - {person_id: 'DNA', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: 'NA'}
+          - {person_id: 'DNULL', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: null}
+          - {person_id: 'DFR', data_source: 'medicare', enrollment_start_date: '2024-01-01', enrollment_end_date: '2024-12-31', medicare_status_code: '10', original_reason_entitlement_code: '0', dual_status_code: '0.5'}
+
+    expect:
+      rows:
+        - {PERSON_ID: 'D01', YEAR_MONTH: '202401', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D02', YEAR_MONTH: '202402', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D03', YEAR_MONTH: '202403', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D04', YEAR_MONTH: '202404', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D05', YEAR_MONTH: '202405', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D06', YEAR_MONTH: '202406', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D08', YEAR_MONTH: '202407', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D09', YEAR_MONTH: '202408', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D99', YEAR_MONTH: '202409', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'D00', YEAR_MONTH: '202410', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'DNA', YEAR_MONTH: '202411', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'DNULL', YEAR_MONTH: '202412', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_non_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
+        - {PERSON_ID: 'DFR', YEAR_MONTH: '202401', IS_ASSIGNED: false, ENROLLMENT_TYPE: 'aged_dual', ENROLLMENT_TYPE_SOURCE: 'eligibility_codes'}
 
   - name: test_mbi_resolves_through_the_excluded_beneficiary_crosswalk
     model: int_member_month_risk
