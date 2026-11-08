@@ -14,5 +14,6 @@ select
     cast(FILE_PATH          as {{ dbt.type_string() }})  as FILE_PATH,
     cast(DIRECTORY_NAME     as {{ dbt.type_string() }})  as DIRECTORY_NAME,
     cast(FILE_NAME          as {{ dbt.type_string() }})  as FILE_NAME,
-    {{ try_to_cast_date('FILE_DATE') }}                   as FILE_DATE
+    {{ try_to_cast_date('cast(FILE_DATE as ' ~ dbt.type_string() ~ ')') }}
+        as FILE_DATE
 from {{ source('mssp_raw', 'beneficiary_exclusions') }}

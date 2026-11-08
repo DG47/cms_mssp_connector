@@ -117,6 +117,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   assignment-list-only months, including the 2022 and 2023 benchmark
   years, there was no status code to fall back on, so every member landed
   in an aged type and those years had no ESRD or disabled members.
+- `stg_beneficiary_exclusions`, `stg_excluded_beneficiary_mbi_xref` and the
+  five `stg_mcqm_*` views read `FILE_DATE` as text before `try_to_cast_date`,
+  as the workbook staging views already did. `cms_mssp_pipeline` writes
+  `FILE_DATE` as a DATE for those families, and Snowflake's `TRY_CAST`
+  accepts string input only, so creating the seven views there failed on
+  that column; the DuckDB harness loads every fixture column as text and
+  did not reach the case. The dates the views carry are unchanged.
 
 ### Deprecated
 
