@@ -125,6 +125,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   impossible day is NULL rather than read leniently; the default
   `YYYY-MM-DD` reading of `FILE_DATE` is unchanged. A unit test on the
   staging model pins the layout.
+- `int_member_month_risk` splits an aged member-month typed from the Tuva
+  eligibility codes into aged/dual and aged/non-dual on the four dual status
+  codes the Shared Savings Program counts as dual eligible — 01 QMB, 02
+  QMB-plus, 04 SLMB-plus and 08 other full-benefit dual — instead of every
+  code from 01 to 08. The partial-benefit codes 03 SLMB-only, 05 QDWI and
+  06 QI, which CMS types as aged/non-dual, were typed `aged_dual` and took
+  the aged/dual benchmark rate in `fact_member_month_benchmark`. Only the
+  `eligibility_codes` step changes; the assignment list's score column and
+  enrollment flag are CMS's own typing and were already right.
 - Member-months on the 2022-2024 assignment-list layout, which has no type
   columns, now carry CMS's monthly enrollment type (TUVA-138). On
   assignment-list-only months, including the 2022 and 2023 benchmark
